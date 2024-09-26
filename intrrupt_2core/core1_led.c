@@ -5,10 +5,10 @@
 #include "hardware/irq.h"
 
 // event occur when intrrupts occurs
-void callback()
+/*void callback()
 {
     static int i = 0;
-    static bool on  ;
+    static bool on ;
     if( i == 0)
     {
         on = gpio_get(24);
@@ -18,12 +18,22 @@ void callback()
     gpio_put(25,on);
     printf("ON-OFF ==%d    %d\n",on,i);
     
-}
+}*/
 // main finction of core1 
  void core1_fun()
 {
+
     multicore_fifo_clear_irq();
-    gpio_set_irq_enabled_with_callback(24,GPIO_IRQ_EDGE_FALL,true,&callback);        
+    static int i = 0;
+    static bool on ;
+    if( i == 0)
+    {
+        on = gpio_get(24);
+        i++;
+    }
+    on = !on;
+    gpio_put(25,on);
+    printf("ON-OFF ==%d    %d\n",on,i);
 
     //irq_set_exclusive_handler(SIO_IRQ_PROC1, callback);
     //irq_set_enabled(SIO_IRQ_PROC1, true);
@@ -37,14 +47,14 @@ void callback()
         sleep_ms(100);
         printf("OFFFFFFFFFFF\n");
         sleep_ms(1000);
-    }*/
+    }
 
     while (true)
     {
         printf("OFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n");
         sleep_ms(1000);
 
-    }
+    }*/
 
 }
 
@@ -61,7 +71,11 @@ int main()
     gpio_pull_up(24);
 
     multicore_reset_core1();
-    multicore_launch_core1(core1_fun); // Start core 1 - Do this before any interrupt configuration
+    //multicore_launch_core1(core1_fun); // Start core 1 - Do this before any interrupt configuration
+    
+    gpio_set_irq_enabled_with_callback(24,GPIO_IRQ_EDGE_FALL,true,&core1_fun);        
+
+    
     //multicore_fifo_push_blocking(on);
 
     while (true) 
