@@ -33,7 +33,7 @@
     }
     on = !on;
     gpio_put(25,on);
-    printf("ON-OFF ==%d    %d\n",on,i);
+    printf("ON-OFF ==%d\n",on);
 
     //irq_set_exclusive_handler(SIO_IRQ_PROC1, callback);
     //irq_set_enabled(SIO_IRQ_PROC1, true);
@@ -70,8 +70,9 @@ int main()
     gpio_set_dir(24,0);
     gpio_pull_up(24);
 
+    // initilise core1
     multicore_reset_core1();
-    //multicore_launch_core1(core1_fun); // Start core 1 - Do this before any interrupt configuration
+    multicore_launch_core1(core1_fun); // Start core 1 - Do this before any interrupt configuration
     
     gpio_set_irq_enabled_with_callback(24,GPIO_IRQ_EDGE_FALL,true,&core1_fun);        
 
