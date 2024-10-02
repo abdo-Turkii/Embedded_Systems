@@ -19,7 +19,6 @@ int main()
 {
     stdio_init_all();
 
-    char a ;
     uint i ;
     int arr_a[MAX_ARR] ,arr_b[MAX_ARR],arr_c[MAX_ARR],arr_d[MAX_ARR];
     uint32_t start, end; 
@@ -29,15 +28,6 @@ int main()
     {
         arr_a[i] = i;
     }
-     scanf("%c",&a);
-    if(a == 'a')
-    {
-        printf("arr_a =");
-        for(i = 0; i < MAX_ARR; i++ )
-        {
-            printf(" %d\t",arr_a[i] );
-        }
-    } 
         
     //to copy arr_a in arr_b by For loop
     start = time_us_64();
@@ -47,19 +37,7 @@ int main()
     }
     end = time_us_64();
     time_for = end - start ;
-    scanf("%c",&a);
-    if(a == 'a')
-    {
-        printf("arr_b =");
-        for(i = 0; i < MAX_ARR; i++ )
-        {
-            printf(" %d-%d \t",arr_b[i],arr_a[i] );
-        }
-    }        
-    printf("==========================================================\n");
-
-    //to copy arr_a in arr_b by memcpy() function
-    
+       
     // Get a free channel, panic() if there are none
     int chan = dma_claim_unused_channel(true);
 
@@ -90,35 +68,14 @@ int main()
     end = time_us_64();
     time_dma = end - start ;
 
-    scanf("%c",&a);
-    if(a == 'a')
-    {
-        printf("arr_c =");
-        for(i = 0; i < MAX_ARR; i++ )
-        {
-            printf(" %d-%d \t",arr_c[i],arr_a[i] );
-        }
-    }        
-    printf("==========================================================\n");
-
-
+    
     //to copy arr_a in arr_b by memcpy() function
     start = time_us_64();
     memcpy(arr_d, arr_a, sizeof(arr_a));
     end = time_us_64();
     time_memcpy = end - start ;
     
-    scanf("%c",&a);
-    if(a == 'a')
-    {
-        printf("arr_d =");
-        for(i = 0; i < MAX_ARR; i++ )
-        {
-            printf(" %d-%d \t",arr_d[i],arr_a[i] );
-        }
-    }        
-    printf("==========================================================\n");
-
+    
     while(true)
     {
         printf("==========================================================\n");
