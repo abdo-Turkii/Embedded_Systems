@@ -28,10 +28,10 @@ void invert()
 
 
 int main() {
-    stdio_init_all(); //to initilise all pins
+    stdio_init_all(); //to initilise usb
 
-    //gpio_init(PICO_DEFAULT_LED_PIN);
-    //gpio_init(PIN_BUTTON);
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_init(PIN_BUTTON);
     gpio_pull_up(PIN_BUTTON); //to put pin with vss whit open key that connected to ground
     gpio_set_dir(PICO_DEFAULT_LED_PIN,  GPIO_OUT); // make pin output
     gpio_set_dir(PIN_BUTTON,  GPIO_IN);           // make pin input
