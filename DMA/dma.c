@@ -11,8 +11,8 @@
 
 
 #define MAX_ARR 100
-//#define DATA_CHAN 0
-//#define CTRL_CHAN 1
+#define TRANSFER_NUMBER 100
+
 
 
 int main()
@@ -39,32 +39,46 @@ int main()
     time_for = end - start ;
        
     // Get a free channel, panic() if there are none
-    int chan = dma_claim_unused_channel(true);
+    int chan1 = dma_claim_unused_channel(true);
+    int chan2 = dma_claim_unused_channel(true);
 
     // 8 bit transfers. Both read and write address increment after each
     // transfer (each pointing to a location in src or dst respectively).
     // No DREQ is selected, so the DMA transfers as fast as it can.
 
-    dma_channel_config c = dma_channel_get_default_config(chan);
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
-    channel_config_set_read_increment(&c, true);
-    channel_config_set_write_increment(&c, true);
-    
+    dma_channel_config c1 = dma_channel_get_default_config(chan1);
+    dma_channel_config c2 = dma_channel_get_default_config(chan2);
+
+    channel_config_set_transfer_data_size(&c1, DMA_SIZE_32);
+    channel_config_set_read_increment(&c1, true);
+    channel_config_set_write_increment(&c1, true);
+    channel_config_set_transfer_data_size(&c2, DMA_SIZE_32);
+    channel_config_set_read_increment(&c2, true);
+    channel_config_set_write_increment(&c2, true);
     start = time_us_64();
 
     dma_channel_configure(
-        chan,                   // Channel to be configured
-        &c,                     // The configuration we just created
-        &arr_c,            // The initial write address
-        &arr_a,            // The initial read address
-        100,         // Number of transfers; in this case each is 1 byte.
+        chan1,                   // Channel to be configured
+        &c1,                     // The configuration we just created
+        &arr_c[0],            // The initial write address
+        &arr_a[0],            // The initial read address
+        TRANSFER_NUMBER/2,         // Number of transfers; in this case each is 1 byte.
         true               // Start immediately.
+    );
+    dma_channel_configure(
+        chan2,                       // Channel to be configured
+        &c2,                         // The configuration we just created
+        &arr_c[49],                // The initial write address
+        &arr_a[49],                // The initial read address
+        TRANSFER_NUMBER/2, // Number of transfers; in this case each is 1 byte.
+        true                   // Start immediately.
     );
 
     // We could choose to go and do something else whilst the DMA is doing its
     // thing. In this case the processor has nothing else to do, so we just
     // wait for the DMA to finish.
-    dma_channel_wait_for_finish_blocking(chan);
+    dma_channel_wait_for_finish_blocking(chan1); //Wait for a DMA channel transfer to complete.
+    dma_channel_wait_for_finish_blocking(chan2); //Wait for a DMA channel transfer to complete.
     end = time_us_64();
     time_dma = end - start ;
 

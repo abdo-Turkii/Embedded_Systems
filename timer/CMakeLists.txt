@@ -1,4 +1,4 @@
-project(time_measure)
+project(sum_odd_even)
 
 add_executable(${PROJECT_NAME})
 
@@ -7,7 +7,7 @@ pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # must match with executable name and source file names
-target_sources(${PROJECT_NAME} PRIVATE measure_time.c)
+target_sources(${PROJECT_NAME} PRIVATE sum_odd_even.c)
 # pull in common dependencies
 target_link_libraries(${PROJECT_NAME} pico_stdlib)
 
