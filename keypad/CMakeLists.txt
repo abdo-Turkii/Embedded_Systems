@@ -7,7 +7,7 @@ pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # must match with executable name and source file names
-target_sources(${PROJECT_NAME} PRIVATE keypad.c keypad.h lcd.h lcd.c )
+target_sources(${PROJECT_NAME} PRIVATE main.c keypad.h lcd.h keypad.c lcd.c )
 # pull in common dependencies
 target_link_libraries(${PROJECT_NAME} pico_stdlib hardware_i2c hardware_gpio)
 

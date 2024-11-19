@@ -1,4 +1,3 @@
-#include "keypad.h"
 
 //Macro for LCD
 #define ADDR 0x27
@@ -40,6 +39,6 @@
 
 void high_low_enable(uint8_t val);
 void transfer(uint8_t val , int mode);
-static inline void lcd_char(char val);
+void lcd_char(char val);
 void lcd_string(const char *s);
 void lcd_initalise();

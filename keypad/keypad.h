@@ -14,4 +14,7 @@
 #define LOW 0
 #define HIGH 1
 
+void init_gpio();
+char scan_keypad();
+
 #endif
