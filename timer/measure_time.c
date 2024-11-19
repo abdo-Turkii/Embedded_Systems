@@ -58,7 +58,6 @@ int main()
 //to print time of operation
   while ( true )
   {
-
 		printf("\nTime for int %lf\n",seconds_int);
 		printf("\nTime for float %lf\n",seconds_fl);
 		printf("\nTime for Double %lf\n",seconds_double);
