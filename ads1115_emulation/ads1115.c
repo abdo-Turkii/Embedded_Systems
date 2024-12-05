@@ -26,7 +26,7 @@ static const uint I2C_MASTER_SCL_PIN = 19;
 // writes the memory address, followed by the data. The address is automatically incremented
 // for each byte transferred, looping back to 0 upon reaching the end. Reading is done
 // sequentially from the current memory address.
-static uint8_t buffer[4]={56,24,54,44};
+static uint8_t buffer[4]={33,57,49,88};
 static uint8_t buffer_index = 0  ; 
 static bool buffer_index_written ;
 
@@ -86,25 +86,11 @@ static void run_master() {
 
     for (buffer_index = 0;; buffer_index = (buffer_index + 1) % 4) {
     
-        int i =99 ;
-        uint8_t buf[2];
-        buf[0] = buffer_index;
-        buf[1] = i ;
-        i++;
-        // write message at mem_address
-        printf("Write at %d: '%d'\n", buffer_index,buf[1]);
-        int count = i2c_write_blocking(i2c1, I2C_SLAVE_ADDRESS, buf, 2 , false);
-        if (count < 0) {
-            puts("Couldn't write to slave, please check your wiring!");
-            return;
-        }
-
-        //seek to mem_address
-        i2c_write_blocking(i2c1, I2C_SLAVE_ADDRESS, buf, 1, true);
-        //  read
-        buf[1]=0;
-        i2c_read_blocking(i2c1, I2C_SLAVE_ADDRESS, &buf[1], 1, true);
-        printf("Read  at %d: '%u'\n", buffer_index, buf[1]);
+        uint8_t buf[1];       
+        //read from i2c slave buffer
+        buf[0]=0 ;
+        i2c_read_blocking(i2c1, I2C_SLAVE_ADDRESS, &buf[0], 1, true);
+        printf("Read  at %d: '%u'\n", buffer_index, buf[0]);
         puts("");
         sleep_ms(2000);
     }
