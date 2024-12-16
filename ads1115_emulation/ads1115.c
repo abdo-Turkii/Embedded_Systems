@@ -28,12 +28,12 @@ struct config_register {
 #define ADC_27 27
 #define ADC_28 28
 #define ADC_29 29
-static uint pag = 2;
-static uint16_t set_configration =0x0483  , read ,max_range ;
-static uint8_t reg_add = 0 , most , last ;   //refar to the number of register
-static bool ack  ;   // acknowledge bit
+
+volatile static uint16_t set_configration =0x0483  , input_signal , response  ;
+static uint8_t reg_add = 0 , msb , lsb ;   // reg_add refar to the number of register
+uint16_t max_range ;                      // max range for input signal
 // I2C address and pins
-static const uint I2C_SLAVE_ADDRESS = 0x055;
+static const uint I2C_SLAVE_ADDRESS = 0x055;   //address of i2c slave in rp2040
 static const uint I2C_BAUDRATE = 100*1000;    // 100 kHz 
 
 //define critical section lock
@@ -47,13 +47,13 @@ static const uint I2C_SLAVE_SCL_PIN = 19;
 //Function to get signal and convert it to 15 bits.
 void get_adc_read()
 {
-    read = adc_read();           //get signal from ADC after convertion it to digital
-    if(read >= 5084)       //saturate signal 
-        read = 32767;          //MAX in range 
-    else{
-        read = (read * 32767 ) / 5084 ;   //Store signal in 15 bits
-    }
+    input_signal = adc_read();           //get signal from ADC after convertion it to digital
+    if(input_signal >= max_range)       //saturate signal 
+        response = 32767;                //MAX in range 
+    else
+        response = (input_signal * 32767 ) / max_range ;   //Store signal in 15 bits 
 }
+
 //Function to initialize ADC GPIO
 void adc_config()
 {
@@ -68,56 +68,49 @@ void adc_config()
 //Function to apply configration 
 void adc_settings()
 {
-    //Select adc pin input from  pin 0 to 3
-    adc_select_input(0); 
+    //Select adc pin input from  pin 0 to 3 (Gpio from 26 to 29)
+    adc_select_input(config.mux); 
 
     //from section [9.6.3] Config Register
     //Seleect PAG from FSR = 0.256 to 6.144 V
-    /*if(config.pag >= 5 )    {max_range   = 328     ;}  // get read in range from 0 to 256  mV
+    if(config.pag >= 5 )    {max_range   = 328     ;}  // get read in range from 0 to 256  mV
     else if(config.pag == 4){max_range   = 635     ;}  // get read in range from 0 to 512  mV
     else if(config.pag == 3){max_range   = 1271    ;}  // get read in range from 0 to 1024 mV
     else if(config.pag == 2){max_range   = 2542    ;}  // get read in range from 0 to 2048 mV
     else if(config.pag == 1){max_range   = 5084    ;}  // get read in range from 0 to 4096 mV
-    else if(config.pag == 0){max_range   = 7626    ;}*/  // get read in range from 0 to 6144 mV
+    else if(config.pag == 0){max_range   = 7626    ;}  // get read in range from 0 to 6144 mV
 }
 
 // Our handler is called from the I2C ISR, so it must complete quickly. Blocking calls /
 // printing to stdio may interfere with interrupt handling.
 static void i2c_slave_handler(i2c_inst_t *i2c, i2c_slave_event_t event) {
+    
     //critical zone start
     critical_section_enter_blocking(&myLock);
+    
     //From section [10.1.7] we obtain the sequence of operation for master bus
     switch (event) {
     case I2C_SLAVE_RECEIVE: // master has written some data
             // writes always start with the memory address
             reg_add = i2c_read_byte_raw(i2c); 
-            ack = true ;
-            //("reg_add: %u\n",reg_add);
             // save configration  into configration register 
             if(reg_add == 1 ) {
                 reg_add = 2 ;
-                //last = i2c_read_byte_raw(i2c); 
-                i2c_read_blocking(i2c1, I2C_SLAVE_ADDRESS, &set_configration,2, false);
-                most = set_configration ;
-                last=(set_configration >> 8) ;
-                //printf("most: %u\n",most);
-                //printf("last: %u\n",last);
-                set_configration = (most << 8) | last;
+                i2c_read_blocking(i2c1, I2C_SLAVE_ADDRESS, &set_configration,2, true);
+                msb = set_configration ;
+                lsb=(set_configration >> 8) ;
+                set_configration = (msb << 8) | lsb;
                 memcpy(&config,&set_configration,sizeof(uint16_t));
-                //printf("Settings: %u\n",set_configration );
-                adc_settings();
             }
             
         break;
     case I2C_SLAVE_REQUEST: // master is requesting data load from ADC
+        adc_settings();
         get_adc_read();
-        //printf("SEnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnt\n");
-        //printf("THE value is: %u [%u]\n",read,pag);
-        i2c_write_byte_raw(i2c, (read >> 8) );
-        i2c_write_byte_raw(i2c, read);
+        i2c_write_byte_raw(i2c, (response >> 8) );
+        i2c_write_byte_raw(i2c, response);
         break;
     case I2C_SLAVE_FINISH: // master has signalled Stop / Restart
-        ack = false ;
         break;
     default:
         break;
