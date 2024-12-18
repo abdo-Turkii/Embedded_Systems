@@ -30,7 +30,7 @@ struct config_register {
 #define ADC_28 28
 #define ADC_29 29
 
-static uint16_t set_configration =0x0483  , input_signal , response  ;
+static uint16_t set_configration =0x8483  ,lo_thresh_reg =0x8000,ho_thresh_reg=0x7FFF, input_signal , response  ;
 static uint8_t add_ptr_reg = 0 , msb , lsb ;   // reg_add refar to the number of register
 uint16_t max_range ;                      // max range for input signal
 static bool ack ;                        // acknowledge bit
@@ -49,8 +49,8 @@ static const uint I2C_SLAVE_SCL_PIN = 19;
 //Function to get signal and convert it to 15 bits.
 void get_adc_read()
 {
-    input_signal = adc_read();           //get signal from ADC after convertion it to digital
-    if(input_signal >= max_range)       //saturate signal 
+    input_signal = adc_read();             //get signal from ADC after convertion it to digital
+    if(input_signal >= max_range)         //saturate signal 
         response = 32767;                //MAX in range 
     else
         response = (input_signal * 32767 ) / max_range ;   //Store signal in 15 bits 
@@ -92,33 +92,36 @@ static void i2c_slave_handler(i2c_inst_t *i2c, i2c_slave_event_t event) {
     
     //From section [10.1.7] we obtain the sequence of operation for master bus
     switch (event) {
-    case I2C_SLAVE_RECEIVE: // master has written some data
-            if(!ack){
-            // writes always start with the memory address
-            add_ptr_reg = i2c_read_byte_raw(i2c); 
-            ack = true ;
-            }
-            // save configration  into configration register 
-            else {
-                //add_ptr_reg = 0 ;
-                i2c_read_blocking(i2c, I2C_SLAVE_ADDRESS, &set_configration,2, false);
-                msb = set_configration ;
-                lsb = (set_configration >> 8) ;
-                set_configration = (msb << 8) | lsb;
-                memcpy(&config,&set_configration,sizeof(uint16_t));
-            }
-            
+    case I2C_SLAVE_RECEIVE: // master has written some data  
+        // writes always start with the memory address
+        add_ptr_reg = i2c_read_byte_raw(i2c); 
+        // save configration  into configration register 
+        if(add_ptr_reg == 1){
+            uint8_t buffer[2];
+            i2c_read_blocking(i2c, I2C_SLAVE_ADDRESS, buffer, 2, false);
+            msb = buffer[0];
+            lsb = buffer[1];
+            set_configration = (msb << 8) | lsb;
+            memcpy(&config, &set_configration, sizeof(uint16_t));
+
+        }  
+        if(add_ptr_reg == 2){i2c_read_blocking(i2c, I2C_SLAVE_ADDRESS, &lo_thresh_reg,2, false);}  
+        if(add_ptr_reg == 3){i2c_read_blocking(i2c, I2C_SLAVE_ADDRESS, &ho_thresh_reg,2, false);}         
         break;
     case I2C_SLAVE_REQUEST: // master is requesting data load from ADC
-        printf("Most[%u]-Least[%u]\n",msb,lsb);
+        if(add_ptr_reg == 1){
+            i2c_write_byte_raw(i2c, (set_configration >> 8) );
+            i2c_write_byte_raw(i2c, set_configration);
+        }
+        else{
         adc_settings();
         get_adc_read();
-        printf("pin[%u]-pga[%u]\n",(config.mux%4),config.pga);
+        printf("pin[%u]-pga[%u]\n",(config.mux %4),config.pga);
+        
         i2c_write_byte_raw(i2c, (response >> 8) );
-        i2c_write_byte_raw(i2c, response);
+        i2c_write_byte_raw(i2c, response);}
         break;
     case I2C_SLAVE_FINISH: // master has signalled Stop / Restart
-        ack = false ;
         break;
     default:
         break;
