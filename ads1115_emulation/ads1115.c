@@ -43,7 +43,7 @@ struct config_register {
 #define I2C_SLAVE_SDA_PIN 18
 #define I2C_SLAVE_SCL_PIN 19 
 
-//Nouber of register in ADS1115
+// Number of register in ADS1115
 #define NUM_REGISTERS 4
 // From data sheet of ADS115 p[27] in section [9.6] Register Map for ADS1115  
 // Table (6). Address Pointer Register Field Descriptions
