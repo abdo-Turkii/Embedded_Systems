@@ -13,8 +13,7 @@
 // from RP2040 i using GPIO(26,27,28,29) as a ADC converter with 12 bits resolution. 
 // ADS1115 have a 16 bits resolution so we convert 12 bits to 16 bits to send data in 16 bits 
 // Datasheet of ADS1115 [https://www.ti.com/lit/ds/symlink/ads1115.pdf].
-// Git hub link [https://github.com/abdo-Turkii/Embedded_Systems/blob/main/ads1115_emulation/ads1115.c].
-
+// Git hub link [https://github.com/abdo-Turkii/Embedded_Systems/blob/main/ads1115_emulation/ads1115.c]
 // From data sheet of ADS115 p[28] in section [9.6.3] Config Register Field Descriptions 
 // Table(8) Config Register Field Descriptions.
 struct config_register {
@@ -43,7 +42,7 @@ struct config_register {
 #define I2C_SLAVE_SDA_PIN 18
 #define I2C_SLAVE_SCL_PIN 19 
 
-//Nouber of register in ADS1115
+//Number of register in ADS1115
 #define NUM_REGISTERS 4
 // From data sheet of ADS115 p[27] in section [9.6] Register Map for ADS1115  
 // Table (6). Address Pointer Register Field Descriptions
