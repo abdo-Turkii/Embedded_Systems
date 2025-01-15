@@ -100,52 +100,42 @@ static void i2c_slave_handler(i2c_inst_t *i2c, i2c_slave_event_t event) {
     //From data sheet of PCA9685 p[32] in section [9.Bus transactions] we obtain the sequence of operation for master bus
     switch (event) {
     case I2C_SLAVE_RECEIVE: // master has written some data  
-    if (register_pca9685_address_written == true) {
-        // writes always start with the memory address
-        register_address = i2c_read_byte_raw(i2c); 
-        //printf("%d-Register address is: %d\n",j,register_address);
-        j=j+1;
-        register_pca9685_address_written = false;
-        // Save Data into PCA9685 registers 
-        //register_pca9685[register_address] = i2c_read_byte_raw(i2c); 
-        //printf("register_pca9685[register_address]: %d\n",register_pca9685[register_address]);
-    }
-    else
-        {  
+        if (register_pca9685_address_written == true) {
             register_pca9685_address_written = false;
-            for( i = 1; i < 76; i++)
-            register_pca9685[register_address] = i2c_read_byte_raw(i2c); 
-            printf("%d-Register address is: %d,register_pca9685[register_address]: %d\n",j,register_address,register_pca9685[register_address]);
-            j=j+1;
-            /*if(register_address == 0)
+            // writes always start with the memory address
+            register_address = i2c_read_byte_raw(i2c); 
+            //printf("%d-Register address is: %d\n",j,register_address);
+            //j=j+1;
+        }
+        else
+        {
+            // Save Data into PCA9685 registers 
+            register_pca9685[register_address] = i2c_read_byte_raw(i2c);            
+            //printf("%d-Register address is: %d,register_pca9685[register_address]: %d\n",j,register_address,register_pca9685[register_address]);
+            //j=j+1;
+            if(register_address == 0)
                 //copy bits in bitfield struct
                 memcpy(&mode_1, &register_pca9685[register_address], sizeof(uint8_t)); 
-            if(mode_1.ai == 1){
-                mode_1.ai = 0;
-                //auto increment mode
-                for( i = 1; i < 70; i++){
-                    register_pca9685[register_address + i] = i2c_read_byte_raw(i2c); 
-                    if ((i > 8) && ((i-9)%4 == 0)){         
-                        channel_number = ((i-9)/4);
-                        //copy bits in bitfield struct
-                        led.led_on_l = register_pca9685[i-3];
-                        led.led_on_h = register_pca9685[i-2] & 0x0F;
-                        led_on = (led.led_on_h << 8) | led.led_on_l;
-                        led.led_off_l = register_pca9685[i-1];
-                        led.led_off_h = register_pca9685[i] & 0x0F;
-                        led_off = (led.led_off_h << 8) | led.led_off_l;
-                        //i=i+4;  
-                        // put setting of PWM
-                        pwm_configuration(channel_number , led_on, led_off);
-                    }
-                }
+            if(register_address == 1)
+                //copy bits in bitfield struct
+                memcpy(&mode_2, &register_pca9685[register_address], sizeof(uint8_t));   
+            if ((register_address > 8) && ((register_address-9)%4 == 0)){ 
+                if (mode_1.ai == 0) 
+                    register_pca9685_address_written = true;
+                channel_number = ((register_address-9)/4);
+                //copy bits in bitfield struct
+                led.led_on_l = register_pca9685[register_address-3];
+                led.led_on_h = register_pca9685[register_address-2] & 0x0F;
+                led_on = (led.led_on_h << 8) | led.led_on_l;
+                led.led_off_l = register_pca9685[register_address-1];
+                led.led_off_h = register_pca9685[register_address] & 0x0F;
+                led_off = (led.led_off_h << 8) | led.led_off_l;
+                // put setting of PWM
+                pwm_configuration(channel_number , led_on, led_off);
             }
+            register_address=(register_address+1)%70;
         }
-        if(register_address == 1)
-            //copy bits in bitfield struct
-            memcpy(&mode_2, &register_pca9685[register_address], sizeof(uint8_t));   
-        */
-        }
+        
         break;
     case I2C_SLAVE_REQUEST: // master is requesting data load from ADC
         if(mode_1.ai == 1){
@@ -159,7 +149,7 @@ static void i2c_slave_handler(i2c_inst_t *i2c, i2c_slave_event_t event) {
             i2c_write_byte_raw(i2c, (register_pca9685[register_address]) & 0xFF);
         break;
     case I2C_SLAVE_FINISH: // master has signalled Stop / Restart
-        register_pca9685_address_written = false;
+        //register_pca9685_address_written = false;
         break;
     default:
         break;
