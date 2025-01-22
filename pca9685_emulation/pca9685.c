@@ -19,7 +19,6 @@
 // Datasheet of PCA9685 [https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf].
 // Git hub link [https://github.com/abdo-Turkii/Embedded_Systems/blob/main/ads1115_emulation/ads1115.c]
 
-
 // From data sheet of PCA9685 p[14] in section [ 7.3.1 Mode register 1, MODE1]. 
 // Table (5). MODE1 - Mode register 1 (address 00h) bit description.
 struct register_mode_1 {
